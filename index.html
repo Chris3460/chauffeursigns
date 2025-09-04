@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Limo Service Name Sign Generator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #2c3e50, #1a1a2e);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #f8f8f8;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            font-size: 24px;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        .platform-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .platform-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            background: #3498db;
+            color: white;
+            min-width: 120px;
+        }
+        
+        .platform-btn.active {
+            background: #2ecc71;
+        }
+        
+        .preview {
+            margin-top: 25px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            text-align: center;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .preview h3 {
+            color: #2c3e50;
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+        
+        #nameDisplay {
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #2c3e50;
+            text-align: center;
+            width: 100%;
+        }
+        
+        .actions {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .btn-generate {
+            background: #e74c3c;
+            color: white;
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .instructions {
+            margin-top: 25px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .instructions h3 {
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        
+        /* Phone View specific styles */
+        .phone-view {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 100;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .phone-view-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .phone-view-name {
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: black;
+            width: 100%;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .close-phone-view {
+            padding: 10px 20px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            position: absolute;
+            bottom: 30px;
+        }
+        
+        /* Media query for mobile devices */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 22px;
+            }
+            
+            .platform-btn {
+                padding: 10px 15px;
+                font-size: 14px;
+                min-width: 100px;
+            }
+            
+            .btn {
+                padding: 12px 20px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Name Sign Generator</h1>
+        
+        <div class="input-group">
+            <label for="passengerName">Passenger Name:</label>
+            <input type="text" id="passengerName" placeholder="Enter passenger name">
+        </div>
+        
+        <div class="platform-selector">
+            <button class="platform-btn active" id="printView">Print View</button>
+            <button class="platform-btn" id="phoneView">Phone View</button>
+        </div>
+        
+        <div class="preview">
+            <h3>Preview:</h3>
+            <div id="nameDisplay">ENTER NAME ABOVE</div>
+        </div>
+        
+        <div class="actions">
+            <button class="btn btn-generate" id="generateBtn">Generate Sign</button>
+        </div>
+        
+        <div class="instructions">
+            <h3>Instructions:</h3>
+            <ul>
+                <li>Enter the passenger's name in the input field</li>
+                <li>Select "Print View" for printing on paper</li>
+                <li>Select "Phone View" for displaying on your phone</li>
+                <li>Click "Generate Sign" to create the sign</li>
+                <li>When printing, ensure your printer is set to landscape orientation</li>
+                <li>For Phone View, hold your phone horizontally for best results</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Phone View container -->
+    <div class="phone-view" id="phoneViewContainer">
+        <div class="phone-view-content">
+            <div class="phone-view-name" id="phoneViewName"></div>
+            <button class="close-phone-view" id="closePhoneView">Close</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const passengerNameInput = document.getElementById('passengerName');
+            const printViewBtn = document.getElementById('printView');
+            const phoneViewBtn = document.getElementById('phoneView');
+            const nameDisplay = document.getElementById('nameDisplay');
+            const generateBtn = document.getElementById('generateBtn');
+            const phoneViewContainer = document.getElementById('phoneViewContainer');
+            const phoneViewName = document.getElementById('phoneViewName');
+            const closePhoneView = document.getElementById('closePhoneView');
+            
+            let currentView = 'print';
+            
+            // Update preview as user types
+            passengerNameInput.addEventListener('input', function() {
+                updateNameDisplay();
+            });
+            
+            // View selection
+            printViewBtn.addEventListener('click', function() {
+                currentView = 'print';
+                printViewBtn.classList.add('active');
+                phoneViewBtn.classList.remove('active');
+                updateNameDisplay();
+            });
+            
+            phoneViewBtn.addEventListener('click', function() {
+                currentView = 'phone';
+                phoneViewBtn.classList.add('active');
+                printViewBtn.classList.remove('active');
+                updateNameDisplay();
+            });
+            
+            // Generate sign
+            generateBtn.addEventListener('click', function() {
+                if (!passengerNameInput.value.trim()) {
+                    alert('Please enter a passenger name');
+                    return;
+                }
+                
+                if (currentView === 'print') {
+                    generatePrintView();
+                } else {
+                    generatePhoneView();
+                }
+            });
+            
+            // Close phone view
+            closePhoneView.addEventListener('click', function() {
+                phoneViewContainer.style.display = 'none';
+                
+                // Exit fullscreen if supported
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+            });
+            
+            function updateNameDisplay() {
+                const name = passengerNameInput.value.trim().toUpperCase() || 'ENTER NAME ABOVE';
+                nameDisplay.textContent = name;
+                
+                // Adjust font size for preview
+                const maxFontSize = currentView === 'print' ? 60 : 40;
+                const minFontSize = 20;
+                
+                let fontSize = maxFontSize;
+                nameDisplay.style.fontSize = `${fontSize}px`;
+                
+                // Scale down if text is too wide
+                while (nameDisplay.scrollWidth > nameDisplay.offsetWidth - 40 && fontSize > minFontSize) {
+                    fontSize--;
+                    nameDisplay.style.fontSize = `${fontSize}px`;
+                }
+            }
+            
+            function generatePrintView() {
+                const name = passengerNameInput.value.trim().toUpperCase();
+                
+                // Adjust font size for printing
+                let fontSize = 120;
+                
+                // Create a temporary element to measure text width
+                const tempElement = document.createElement('div');
+                tempElement.style.position = 'absolute';
+                tempElement.style.left = '-9999px';
+                tempElement.style.fontFamily = 'Arial, sans-serif';
+                tempElement.style.fontWeight = 'bold';
+                tempElement.style.fontSize = `${fontSize}pt`;
+                tempElement.style.textTransform = 'uppercase';
+                tempElement.textContent = name;
+                document.body.appendChild(tempElement);
+                
+                // Scale down if text is too wide (assuming 10in width for landscape paper with margins)
+                const maxWidth = 10 * 96; // 10 inches in pixels (96 dpi)
+                
+                while (tempElement.scrollWidth > maxWidth && fontSize > 20) {
+                    fontSize--;
+                    tempElement.style.fontSize = `${fontSize}pt`;
+                }
+                
+                document.body.removeChild(tempElement);
+                
+                // Create a new window with the print content
+                const printWindow = window.open('', '_blank');
+                
+                // Simple HTML content that should work on all devices
+                printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Limo Sign - ${name}</title>
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <style>
+                            body, html {
+                                margin: 0;
+                                padding: 0;
+                                height: 100%;
+                                width: 100%;
+                                display: flex;
+                                justify-content: center;
+                                align-items: flex-start;
+                                background: white;
+                                overflow: hidden;
+                            }
+                            .name {
+                                font-family: Arial, sans-serif;
+                                font-weight: bold;
+                                text-transform: uppercase;
+                                text-align: center;
+                                color: black;
+                                font-size: ${fontSize}pt;
+                                width: 100%;
+                                margin-top: 2.125in;
+                                transform: translateY(-50%);
+                                position: absolute;
+                                top: 0;
+                            }
+                            @media print {
+                                body, html {
+                                    height: auto;
+                                    overflow: visible;
+                                }
+                                .name {
+                                    margin-top: 2.125in;
+                                }
+                                @page {
+                                    size: landscape;
+                                    margin: 0;
+                                }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="name">${name}</div>
+                        <script>
+                            // Check if we're on a mobile device
+                            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                            
+                            if (!isMobile) {
+                                // On desktop, automatically print after a short delay
+                                setTimeout(function() {
+                                    window.print();
+                                    setTimeout(function() {
+                                        window.close();
+                                    }, 100);
+                                }, 500);
+                            }
+                        <\/script>
+                    </body>
+                    </html>
+                `);
+                printWindow.document.close();
+                
+                // Check if we're on a mobile device
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                
+                if (isMobile) {
+                    // On mobile, show instructions instead of automatically printing
+                    setTimeout(function() {
+                        alert('Print preview is ready! Please use the browser\'s print option from the menu. Make sure to select landscape orientation.');
+                    }, 500);
+                }
+            }
+            
+            function generatePhoneView() {
+                const name = passengerNameInput.value.trim().toUpperCase();
+                if (!name) return;
+                
+                phoneViewName.textContent = name;
+                
+                // Reset font size to a very large value
+                let fontSize = 200;
+                phoneViewName.style.fontSize = `${fontSize}px`;
+                
+                // Scale down until it fits both width and height
+                const maxWidth = window.innerWidth - 40;
+                const maxHeight = window.innerHeight - 100;
+                
+                // Create a temporary span to measure text dimensions
+                const tempSpan = document.createElement('span');
+                tempSpan.style.visibility = 'hidden';
+                tempSpan.style.position = 'absolute';
+                tempSpan.style.fontFamily = 'Arial, sans-serif';
+                tempSpan.style.fontWeight = 'bold';
+                tempSpan.style.fontSize = `${fontSize}px`;
+                tempSpan.textContent = name;
+                document.body.appendChild(tempSpan);
+                
+                // Reduce font size until it fits both dimensions
+                while ((tempSpan.offsetWidth > maxWidth || tempSpan.offsetHeight > maxHeight) && fontSize > 20) {
+                    fontSize--;
+                    tempSpan.style.fontSize = `${fontSize}px`;
+                }
+                
+                document.body.removeChild(tempSpan);
+                
+                // Apply the calculated font size
+                phoneViewName.style.fontSize = `${fontSize}px`;
+                
+                // Show the phone view
+                phoneViewContainer.style.display = 'flex';
+                
+                // Try to enter fullscreen
+                const elem = phoneViewContainer;
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen().catch(err => {
+                        console.log('Fullscreen error: ', err);
+                    });
+                } else if (elem.webkitRequestFullscreen) {
+                    elem.webkitRequestFullscreen();
+                } else if (elem.msRequestFullscreen) {
+                    elem.msRequestFullscreen();
+                }
+            }
+            
+            // Initial update
+            updateNameDisplay();
+            
+            // Handle orientation change for phone view
+            window.addEventListener('orientationchange', function() {
+                if (currentView === 'phone' && phoneViewContainer.style.display === 'flex') {
+                    // Recalculate font size on orientation change
+                    const name = passengerNameInput.value.trim().toUpperCase();
+                    if (name) {
+                        let fontSize = 200;
+                        phoneViewName.style.fontSize = `${fontSize}px`;
+                        
+                        const maxWidth = window.innerWidth - 40;
+                        const maxHeight = window.innerHeight - 100;
+                        
+                        const tempSpan = document.createElement('span');
+                        tempSpan.style.visibility = 'hidden';
+                        tempSpan.style.position = 'absolute';
+                        tempSpan.style.fontFamily = 'Arial, sans-serif';
+                        tempSpan.style.fontWeight = 'bold';
+                        tempSpan.style.fontSize = `${fontSize}px`;
+                        tempSpan.textContent = name;
+                        document.body.appendChild(tempSpan);
+                        
+                        while ((tempSpan.offsetWidth > maxWidth || tempSpan.offsetHeight > maxHeight) && fontSize > 20) {
+                            fontSize--;
+                            tempSpan.style.fontSize = `${fontSize}px`;
+                        }
+                        
+                        document.body.removeChild(tempSpan);
+                        phoneViewName.style.fontSize = `${fontSize}px`;
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
