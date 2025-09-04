@@ -157,20 +157,21 @@
             margin-bottom: 8px;
         }
         
-        /* Phone View specific styles */
+        /* Phone View specific styles - Enhanced for true fullscreen */
         .phone-view {
             display: none;
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: white;
-            z-index: 100;
+            width: 100vw;
+            height: 100vh;
+            background: black;
+            z-index: 9999;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 0;
+            margin: 0;
         }
         
         .phone-view-content {
@@ -180,30 +181,49 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            position: relative;
         }
         
         .phone-view-name {
             font-family: Arial, sans-serif;
             font-weight: bold;
             text-transform: uppercase;
-            color: black;
+            color: white;
             width: 100%;
             text-align: center;
             padding: 20px;
+            line-height: 1;
         }
         
         .close-phone-view {
-            padding: 10px 20px;
-            background: #e74c3c;
+            padding: 15px 30px;
+            background: rgba(231, 76, 60, 0.9);
             color: white;
             border: none;
             border-radius: 8px;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 20px;
             position: absolute;
             bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10000;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .close-phone-view:hover {
+            background: rgba(231, 76, 60, 1);
+        }
+        
+        /* Additional styles to ensure fullscreen on all devices */
+        .phone-view.fullscreen {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 999999 !important;
         }
         
         /* Media query for mobile devices */
@@ -230,6 +250,22 @@
                 padding: 12px 20px;
                 font-size: 16px;
             }
+            
+            .close-phone-view {
+                bottom: 20px;
+                padding: 12px 24px;
+                font-size: 16px;
+            }
+        }
+        
+        /* Hide scrollbars in phone view */
+        .phone-view::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .phone-view {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
     </style>
 </head>
@@ -326,17 +362,34 @@
             
             // Close phone view
             closePhoneView.addEventListener('click', function() {
-                phoneViewContainer.style.display = 'none';
-                
-                // Exit fullscreen if supported
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen();
-                } else if (document.msExitFullscreen) {
-                    document.msExitFullscreen();
+                exitPhoneView();
+            });
+            
+            // Also close phone view when pressing Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && phoneViewContainer.style.display === 'flex') {
+                    exitPhoneView();
                 }
             });
+            
+            function exitPhoneView() {
+                phoneViewContainer.style.display = 'none';
+                phoneViewContainer.classList.remove('fullscreen');
+                
+                // Enable body scroll
+                document.body.style.overflow = '';
+                
+                // Exit fullscreen if supported
+                if (document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement) {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    } else if (document.msExitFullscreen) {
+                        document.msExitFullscreen();
+                    }
+                }
+            }
             
             function updateNameDisplay() {
                 const name = passengerNameInput.value.trim().toUpperCase() || 'ENTER NAME ABOVE';
@@ -471,87 +524,105 @@
                 
                 phoneViewName.textContent = name;
                 
-                // Reset font size to a very large value
-                let fontSize = 200;
-                phoneViewName.style.fontSize = `${fontSize}px`;
+                // Disable body scroll to prevent background scrolling
+                document.body.style.overflow = 'hidden';
                 
-                // Scale down until it fits both width and height
-                const maxWidth = window.innerWidth - 40;
-                const maxHeight = window.innerHeight - 100;
+                // Show the phone view
+                phoneViewContainer.style.display = 'flex';
+                phoneViewContainer.classList.add('fullscreen');
+                
+                // Calculate and set font size
+                calculatePhoneViewFontSize();
+                
+                // Try to enter fullscreen with better error handling
+                const requestFullscreen = () => {
+                    const elem = phoneViewContainer;
+                    
+                    if (elem.requestFullscreen) {
+                        elem.requestFullscreen().catch(err => {
+                            console.log('Fullscreen not supported or denied:', err);
+                        });
+                    } else if (elem.webkitRequestFullscreen) {
+                        elem.webkitRequestFullscreen();
+                    } else if (elem.mozRequestFullScreen) {
+                        elem.mozRequestFullScreen();
+                    } else if (elem.msRequestFullscreen) {
+                        elem.msRequestFullscreen();
+                    }
+                };
+                
+                // Small delay to ensure the element is visible before requesting fullscreen
+                setTimeout(requestFullscreen, 100);
+            }
+            
+            function calculatePhoneViewFontSize() {
+                const name = passengerNameInput.value.trim().toUpperCase();
+                if (!name) return;
+                
+                // Use actual viewport dimensions for better calculation
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                
+                // Account for padding and close button
+                const maxWidth = viewportWidth - 40;
+                const maxHeight = viewportHeight - 120; // Extra space for close button
+                
+                // Reset font size to a very large value
+                let fontSize = Math.min(viewportWidth, viewportHeight) / 2;
+                phoneViewName.style.fontSize = `${fontSize}px`;
                 
                 // Create a temporary span to measure text dimensions
                 const tempSpan = document.createElement('span');
                 tempSpan.style.visibility = 'hidden';
                 tempSpan.style.position = 'absolute';
+                tempSpan.style.top = '-9999px';
                 tempSpan.style.fontFamily = 'Arial, sans-serif';
                 tempSpan.style.fontWeight = 'bold';
-                tempSpan.style.fontSize = `${fontSize}px`;
+                tempSpan.style.textTransform = 'uppercase';
+                tempSpan.style.whiteSpace = 'nowrap';
                 tempSpan.textContent = name;
                 document.body.appendChild(tempSpan);
                 
                 // Reduce font size until it fits both dimensions
                 while ((tempSpan.offsetWidth > maxWidth || tempSpan.offsetHeight > maxHeight) && fontSize > 20) {
-                    fontSize--;
+                    fontSize -= 2;
                     tempSpan.style.fontSize = `${fontSize}px`;
                 }
                 
                 document.body.removeChild(tempSpan);
                 
-                // Apply the calculated font size
-                phoneViewName.style.fontSize = `${fontSize}px`;
-                
-                // Show the phone view
-                phoneViewContainer.style.display = 'flex';
-                
-                // Try to enter fullscreen
-                const elem = phoneViewContainer;
-                if (elem.requestFullscreen) {
-                    elem.requestFullscreen().catch(err => {
-                        console.log('Fullscreen error: ', err);
-                    });
-                } else if (elem.webkitRequestFullscreen) {
-                    elem.webkitRequestFullscreen();
-                } else if (elem.msRequestFullscreen) {
-                    elem.msRequestFullscreen();
-                }
+                // Apply the calculated font size with a small buffer
+                phoneViewName.style.fontSize = `${fontSize * 0.95}px`;
             }
             
             // Initial update
             updateNameDisplay();
             
-            // Handle orientation change for phone view
-            window.addEventListener('orientationchange', function() {
+            // Handle orientation change and resize events for phone view
+            const handleResize = () => {
                 if (currentView === 'phone' && phoneViewContainer.style.display === 'flex') {
-                    // Recalculate font size on orientation change
-                    const name = passengerNameInput.value.trim().toUpperCase();
-                    if (name) {
-                        let fontSize = 200;
-                        phoneViewName.style.fontSize = `${fontSize}px`;
-                        
-                        const maxWidth = window.innerWidth - 40;
-                        const maxHeight = window.innerHeight - 100;
-                        
-                        const tempSpan = document.createElement('span');
-                        tempSpan.style.visibility = 'hidden';
-                        tempSpan.style.position = 'absolute';
-                        tempSpan.style.fontFamily = 'Arial, sans-serif';
-                        tempSpan.style.fontWeight = 'bold';
-                        tempSpan.style.fontSize = `${fontSize}px`;
-                        tempSpan.textContent = name;
-                        document.body.appendChild(tempSpan);
-                        
-                        while ((tempSpan.offsetWidth > maxWidth || tempSpan.offsetHeight > maxHeight) && fontSize > 20) {
-                            fontSize--;
-                            tempSpan.style.fontSize = `${fontSize}px`;
-                        }
-                        
-                        document.body.removeChild(tempSpan);
-                        phoneViewName.style.fontSize = `${fontSize}px`;
-                    }
+                    // Recalculate font size on orientation change or resize
+                    setTimeout(calculatePhoneViewFontSize, 100);
+                }
+            };
+            
+            window.addEventListener('orientationchange', handleResize);
+            window.addEventListener('resize', handleResize);
+            
+            // Handle fullscreen change events
+            document.addEventListener('fullscreenchange', function() {
+                if (!document.fullscreenElement && phoneViewContainer.style.display === 'flex') {
+                    // If we exit fullscreen but phone view is still showing, ensure it stays fullscreen-like
+                    phoneViewContainer.classList.add('fullscreen');
+                }
+            });
+            
+            document.addEventListener('webkitfullscreenchange', function() {
+                if (!document.webkitFullscreenElement && phoneViewContainer.style.display === 'flex') {
+                    phoneViewContainer.classList.add('fullscreen');
                 }
             });
         });
     </script>
 </body>
-
 </html>
